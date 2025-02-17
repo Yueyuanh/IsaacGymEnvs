@@ -180,7 +180,7 @@ class Cartpole(VecTask):
 @torch.jit.script
 def compute_cartpole_reward(pole_angle, pole_vel, cart_vel, cart_pos,
                             reset_dist, reset_buf, progress_buf, max_episode_length):
-    # type: (Tensor, Tensor, Tensor, Tensor, float, Tensor, Tensor, float) -> Tuple[Tensor, Tensor]
+    # type: (Tensor, Tensor, Tensor, Tensor, float, Tensor, Tensor, float) -> Tuple[Tensor, Tensor] # type: ignore
 
     # reward is combo of angle deviated from upright, velocity of cart, and velocity of pole moving
     reward = 1.0 - pole_angle * pole_angle - 0.01 * torch.abs(cart_vel) - 0.005 * torch.abs(pole_vel)

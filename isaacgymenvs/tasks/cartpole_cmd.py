@@ -29,22 +29,23 @@
 import numpy as np
 import os
 import torch
-
+from isaacgymenvs.utils.torch_jit_utils import to_torch, get_axis_params, torch_rand_float, quat_rotate, quat_rotate_inverse
 from isaacgym import gymutil, gymtorch, gymapi
 from .base.vec_task import VecTask
 
-class Cartpole(VecTask):
+class CartpoleCmd(VecTask):
 
     def __init__(self, cfg, rl_device, sim_device, graphics_device_id, headless, virtual_screen_capture, force_render):
         self.cfg = cfg
-        
+
         self.reset_dist = self.cfg["env"]["resetDist"]
 
         self.max_push_effort = self.cfg["env"]["maxEffort"]
         self.max_episode_length = 500
 
-        self.cfg["env"]["numObservations"] = 4
+        self.cfg["env"]["numObservations"] = 5
         self.cfg["env"]["numActions"] = 1
+
 
         super().__init__(config=self.cfg, rl_device=rl_device, sim_device=sim_device, graphics_device_id=graphics_device_id, headless=headless, virtual_screen_capture=virtual_screen_capture, force_render=force_render)
 
@@ -52,6 +53,10 @@ class Cartpole(VecTask):
         self.dof_state = gymtorch.wrap_tensor(dof_state_tensor)
         self.dof_pos = self.dof_state.view(self.num_envs, self.num_dof, 2)[..., 0]
         self.dof_vel = self.dof_state.view(self.num_envs, self.num_dof, 2)[..., 1]
+
+        # 新增随机位置控制
+        self.command_pos_range = self.cfg["env"]["randomCommandPosRanges"]#控制指令
+        self.commands = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)#增加控制指令
 
     def create_sim(self):
         # set the up axis to be z-up given that assets are y-up by default
@@ -107,7 +112,7 @@ class Cartpole(VecTask):
             cartpole_handle = self.gym.create_actor(env_ptr, cartpole_asset, pose, "cartpole", i, 1, 0)
 
             dof_props = self.gym.get_actor_dof_properties(env_ptr, cartpole_handle)
-            dof_props['driveMode'][0] = gymapi.DOF_MODE_EFFORT
+            dof_props['driveMode'][0] = gymapi.DOF_MODE_EFFORT #扭矩模式
             dof_props['driveMode'][1] = gymapi.DOF_MODE_NONE
             dof_props['stiffness'][:] = 0.0
             dof_props['damping'][:] = 0.0
@@ -116,32 +121,35 @@ class Cartpole(VecTask):
             self.envs.append(env_ptr)
             self.cartpole_handles.append(cartpole_handle)
 
-    def compute_reward(self):
+    def compute_reward(self): #计算奖励
         # retrieve environment observations from buffer
         pole_angle = self.obs_buf[:, 2]
-        pole_vel = self.obs_buf[:, 3]
-        cart_vel = self.obs_buf[:, 1]
-        cart_pos = self.obs_buf[:, 0]
+        pole_vel   = self.obs_buf[:, 3]
+        cart_vel   = self.obs_buf[:, 1]
+        cart_pos   = self.obs_buf[:, 0]
+        command    = self.obs_buf[:, 4]
 
         self.rew_buf[:], self.reset_buf[:] = compute_cartpole_reward(
+            command,
             pole_angle, pole_vel, cart_vel, cart_pos,
             self.reset_dist, self.reset_buf, self.progress_buf, self.max_episode_length
         )
 
-    def compute_observations(self, env_ids=None):
+    def compute_observations(self, env_ids=None): #观测器
         if env_ids is None:
             env_ids = np.arange(self.num_envs)
 
-        self.gym.refresh_dof_state_tensor(self.sim)
+        self.gym.refresh_dof_state_tensor(self.sim) #从仿真器获取数据
 
-        self.obs_buf[env_ids, 0] = self.dof_pos[env_ids, 0].squeeze()
-        self.obs_buf[env_ids, 1] = self.dof_vel[env_ids, 0].squeeze()
-        self.obs_buf[env_ids, 2] = self.dof_pos[env_ids, 1].squeeze()
-        self.obs_buf[env_ids, 3] = self.dof_vel[env_ids, 1].squeeze()
+        self.obs_buf[env_ids, 0] = self.dof_pos[env_ids, 0].squeeze() #小车位置
+        self.obs_buf[env_ids, 1] = self.dof_vel[env_ids, 0].squeeze() #小车速度
+        self.obs_buf[env_ids, 2] = self.dof_pos[env_ids, 1].squeeze() #倒立摆角度
+        self.obs_buf[env_ids, 3] = self.dof_vel[env_ids, 1].squeeze() #倒立摆角速度
+        self.obs_buf[env_ids, 4] = self.commands[env_ids].squeeze() #新增观测
 
         return self.obs_buf
 
-    def reset_idx(self, env_ids):
+    def reset_idx(self, env_ids): #复位
         positions = 0.2 * (torch.rand((len(env_ids), self.num_dof), device=self.device) - 0.5)
         velocities = 0.5 * (torch.rand((len(env_ids), self.num_dof), device=self.device) - 0.5)
 
@@ -153,16 +161,22 @@ class Cartpole(VecTask):
                                               gymtorch.unwrap_tensor(self.dof_state),
                                               gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
 
+        #随机期望位置
+        self.commands[env_ids] = torch_rand_float(-self.command_pos_range , self.command_pos_range, (len(env_ids), 1), device=self.device)
+
         self.reset_buf[env_ids] = 0
         self.progress_buf[env_ids] = 0
 
-    def pre_physics_step(self, actions):
+
+
+    def pre_physics_step(self, actions): #预物理步骤
         actions_tensor = torch.zeros(self.num_envs * self.num_dof, device=self.device, dtype=torch.float)
         actions_tensor[::self.num_dof] = actions.to(self.device).squeeze() * self.max_push_effort
         forces = gymtorch.unwrap_tensor(actions_tensor)
         self.gym.set_dof_actuation_force_tensor(self.sim, forces)
 
-    def post_physics_step(self):
+
+    def post_physics_step(self): 
         self.progress_buf += 1
 
         env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)
@@ -171,6 +185,24 @@ class Cartpole(VecTask):
 
         self.compute_observations()
         self.compute_reward()
+        
+        # debug viz
+        self.gym.clear_lines(self.viewer)
+        if 1:#self.viewer and self.debug_viz:
+            for i in range(self.num_envs):
+                #i=23
+                #self.cfg["env"]['envSpacing']
+                origin = self.gym.get_env_origin(self.envs[i])#<<-----------------获取空间原点
+                location=(origin.x, self.commands[i]+origin.y , 2.0)
+                color=(1, 1, 0)
+                self.draw_sphere(location,color)
+                #gymutil.draw_lines(sphere_geom, self.gym, self.viewer, 0, sphere_pose)
+
+    def draw_sphere(self, location, color):
+        #self.gym.clear_lines(self.viewer)
+        sphere_geom = gymutil.WireframeSphereGeometry(0.1, 3, 3, None, color)
+        pose = gymapi.Transform(gymapi.Vec3(location[0], location[1], location[2]), r=None)
+        gymutil.draw_lines(sphere_geom, self.gym, self.viewer, self.envs[0], pose)
 
 #####################################################################
 ###=========================jit functions=========================###
@@ -178,13 +210,15 @@ class Cartpole(VecTask):
 
 
 @torch.jit.script
-def compute_cartpole_reward(pole_angle, pole_vel, cart_vel, cart_pos,
+# 计算奖励：（设定位置,摆角度，摆角速度，车速度，车位置
+#           复位初始距离，复位标志，，训练回合）
+def compute_cartpole_reward(command,pole_angle, pole_vel, cart_vel, cart_pos,
                             reset_dist, reset_buf, progress_buf, max_episode_length):
-    # type: (Tensor, Tensor, Tensor, Tensor, float, Tensor, Tensor, float) -> Tuple[Tensor, Tensor]
+    # type: (Tensor,Tensor, Tensor, Tensor, Tensor, float, Tensor, Tensor, float) -> Tuple[Tensor, Tensor]
 
     # reward is combo of angle deviated from upright, velocity of cart, and velocity of pole moving
     reward = 1.0 - pole_angle * pole_angle - 0.01 * torch.abs(cart_vel) - 0.005 * torch.abs(pole_vel)
-
+    reward = 1.0 - pole_angle * pole_angle*0.5 - 0.01 * torch.abs(cart_vel) - 0.01 * torch.abs(pole_vel) - torch.abs(command-cart_pos)*0.8
     # adjust reward for reset agents
     reward = torch.where(torch.abs(cart_pos) > reset_dist, torch.ones_like(reward) * -2.0, reward)
     reward = torch.where(torch.abs(pole_angle) > np.pi / 2, torch.ones_like(reward) * -2.0, reward)

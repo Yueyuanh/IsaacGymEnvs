@@ -217,7 +217,7 @@ def compute_cartpole_reward(command,pole_angle, pole_vel, cart_vel, cart_pos,
     # type: (Tensor,Tensor, Tensor, Tensor, Tensor, float, Tensor, Tensor, float) -> Tuple[Tensor, Tensor]
 
     # reward is combo of angle deviated from upright, velocity of cart, and velocity of pole moving
-    reward = 1.0 - pole_angle * pole_angle - 0.01 * torch.abs(cart_vel) - 0.005 * torch.abs(pole_vel)
+    # reward = 1.0 - pole_angle * pole_angle - 0.01 * torch.abs(cart_vel) - 0.005 * torch.abs(pole_vel)
     reward = 1.0 - pole_angle * pole_angle*0.5 - 0.01 * torch.abs(cart_vel) - 0.01 * torch.abs(pole_vel) - torch.abs(command-cart_pos)*0.8
     # adjust reward for reset agents
     reward = torch.where(torch.abs(cart_pos) > reset_dist, torch.ones_like(reward) * -2.0, reward)

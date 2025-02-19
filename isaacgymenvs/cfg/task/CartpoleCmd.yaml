@@ -16,7 +16,8 @@ env:
 
   asset:
     assetRoot: "../../assets"
-    assetFileName: "urdf/cartpole.urdf"
+    assetFileName: "urdf/cartpole_cmd.urdf"
+    # assetFileName: "urdf/cartpole.urdf"
 
   # set to True if you use camera sensors in the environment
   enableCameraSensors: False

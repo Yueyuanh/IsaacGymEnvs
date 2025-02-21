@@ -51,6 +51,7 @@ import sys
 
 import abc
 from abc import ABC
+from omegaconf import OmegaConf
 
 EXISTING_SIM = None
 SCREEN_CAPTURE_RESOLUTION = (1027, 768)
@@ -267,6 +268,7 @@ class VecTask(Env):
 
         self.obs_dict = {}
 
+
     def set_viewer(self):
         """Create the viewer."""
 
@@ -286,11 +288,21 @@ class VecTask(Env):
             self.gym.subscribe_viewer_keyboard_event(
                 self.viewer, gymapi.KEY_R, "record_frames")
 
+            # play test
+            current_dir = os.path.dirname(os.path.realpath(__file__))
+            config_path = os.path.join(current_dir, '..','..', 'cfg', 'play_config.yaml')
+            vec_config=OmegaConf.load(config_path)
+
             # set the camera position based on up axis
             sim_params = self.gym.get_sim_params(self.sim)
             if sim_params.up_axis == gymapi.UP_AXIS_Z:
-                cam_pos = gymapi.Vec3(20.0, 25.0, 3.0)
-                cam_target = gymapi.Vec3(10.0, 15.0, 0.0)
+                if vec_config.test:
+                    cam_pos = gymapi.Vec3(5.0, 0.0, 3.0)
+                    cam_target = gymapi.Vec3(0.0, 0.0, 2.0)
+                else:
+                    cam_pos = gymapi.Vec3(20.0, 25.0, 5.0)
+                    cam_target = gymapi.Vec3(10.0, 15.0, 0.0)    
+
             else:
                 cam_pos = gymapi.Vec3(20.0, 3.0, 25.0)
                 cam_target = gymapi.Vec3(10.0, 0.0, 15.0)

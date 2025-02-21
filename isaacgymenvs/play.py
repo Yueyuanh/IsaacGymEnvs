@@ -35,6 +35,8 @@ from omegaconf import DictConfig, OmegaConf
 from omegaconf import DictConfig, OmegaConf
 
 
+# play
+# os.environ["play_mode"]="True"
 
 def preprocess_train_config(cfg, config_dict):
     """
@@ -42,8 +44,8 @@ def preprocess_train_config(cfg, config_dict):
     An alternative to this is inferring them in task-specific .yaml files, but that requires repeating the same
     variable interpolations in each config.
     """
+ 
 
-    
     train_cfg = config_dict['params']['config']
 
     train_cfg['device'] = cfg.rl_device
@@ -121,11 +123,14 @@ def launch_rlg_hydra(cfg: DictConfig):
     # sets seed. if seed is -1 will pick a random one
     cfg.seed = set_seed(cfg.seed, torch_deterministic=cfg.torch_deterministic, rank=global_rank)
 
-    
+    cfg.test = True
+    cfg.num_envs = 1
+
+
     current_dir = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.join(current_dir,'cfg', 'play_config.yaml')
     config=OmegaConf.load(config_path)
-    config.test=False
+    config.test=True
     OmegaConf.save(config, "./cfg/play_config.yaml")
 
     def create_isaacgym_env(**kwargs):
@@ -206,6 +211,7 @@ def launch_rlg_hydra(cfg: DictConfig):
     runner = build_runner(MultiObserver(observers))
     runner.load(rlg_config_dict)
     runner.reset()
+
 
     # dump config dict
     if not cfg.test:

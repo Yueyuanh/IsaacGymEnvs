@@ -32,6 +32,7 @@ import torch
 from isaacgymenvs.utils.torch_jit_utils import to_torch, get_axis_params, torch_rand_float, quat_rotate, quat_rotate_inverse
 from isaacgym import gymutil, gymtorch, gymapi
 from .base.vec_task import VecTask
+from omegaconf import OmegaConf
 
 class CartpoleCmd(VecTask):
 
@@ -58,27 +59,37 @@ class CartpoleCmd(VecTask):
         self.command_pos_range = self.cfg["env"]["randomCommandPosRanges"]#控制指令
         self.commands = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)#增加控制指令
 
+        # 读取环境变量play
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        config_path = os.path.join(current_dir, '..', 'cfg', 'play_config.yaml')
+        self.config=OmegaConf.load(config_path)
+        print(self.config.test)
+
+
     def create_sim(self):
         # set the up axis to be z-up given that assets are y-up by default
         self.up_axis = self.cfg["sim"]["up_axis"]
 
         self.sim = super().create_sim(self.device_id, self.graphics_device_id, self.physics_engine, self.sim_params)
         self._create_ground_plane()
-        self._create_envs(self.num_envs, self.cfg["env"]['envSpacing'], int(np.sqrt(self.num_envs)))
+        self._create_envs(self.num_envs, self.cfg["env"]['envSpacing'], int(np.sqrt(self.num_envs)))# 每行要放置的数量
 
+    # 创建第平面
     def _create_ground_plane(self):
         plane_params = gymapi.PlaneParams()
         # set the normal force to be z dimension
         plane_params.normal = gymapi.Vec3(0.0, 0.0, 1.0) if self.up_axis == 'z' else gymapi.Vec3(0.0, 1.0, 0.0)
         self.gym.add_ground(self.sim, plane_params)
 
-    def _create_envs(self, num_envs, spacing, num_per_row):
+    # 创建环境
+    def _create_envs(self, num_envs, spacing, num_per_row): # 每行要放置的数量
         # define plane on which environments are initialized
+        # 单个环境 spacing:每个环境的边长
         lower = gymapi.Vec3(0.5 * -spacing, -spacing, 0.0) if self.up_axis == 'z' else gymapi.Vec3(0.5 * -spacing, 0.0, -spacing)
         upper = gymapi.Vec3(0.5 * spacing, spacing, spacing)
 
         asset_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../assets")
-        asset_file = "urdf/cartpole.urdf"
+        asset_file = "urdf/cartpole_cmd.urdf"
 
         if "asset" in self.cfg["env"]:
             asset_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.cfg["env"]["asset"].get("assetRoot", asset_root))
@@ -88,11 +99,13 @@ class CartpoleCmd(VecTask):
         asset_root = os.path.dirname(asset_path)
         asset_file = os.path.basename(asset_path)
 
-        asset_options = gymapi.AssetOptions()
-        asset_options.fix_base_link = True
+        # 导入资产额外信息
+        asset_options = gymapi.AssetOptions() # 额外选项
+        asset_options.fix_base_link = True # 固定base_link
         cartpole_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options)
         self.num_dof = self.gym.get_asset_dof_count(cartpole_asset)
-
+ 
+        # 加载资产并旋转
         pose = gymapi.Transform()
         if self.up_axis == 'z':
             pose.p.z = 2.0
@@ -109,6 +122,7 @@ class CartpoleCmd(VecTask):
             env_ptr = self.gym.create_env(
                 self.sim, lower, upper, num_per_row
             )
+            # 资产创建Actor
             cartpole_handle = self.gym.create_actor(env_ptr, cartpole_asset, pose, "cartpole", i, 1, 0)
 
             dof_props = self.gym.get_actor_dof_properties(env_ptr, cartpole_handle)
@@ -145,12 +159,12 @@ class CartpoleCmd(VecTask):
         self.obs_buf[env_ids, 1] = self.dof_vel[env_ids, 0].squeeze() #小车速度
         self.obs_buf[env_ids, 2] = self.dof_pos[env_ids, 1].squeeze() #倒立摆角度
         self.obs_buf[env_ids, 3] = self.dof_vel[env_ids, 1].squeeze() #倒立摆角速度
-        self.obs_buf[env_ids, 4] = self.commands[env_ids].squeeze() #新增观测
+        self.obs_buf[env_ids, 4] = self.commands[env_ids].squeeze()   #新增观测
 
         return self.obs_buf
 
     def reset_idx(self, env_ids): #复位
-        positions = 0.2 * (torch.rand((len(env_ids), self.num_dof), device=self.device) - 0.5)
+        positions  = 0.2 * (torch.rand((len(env_ids), self.num_dof), device=self.device) - 0.5)
         velocities = 0.5 * (torch.rand((len(env_ids), self.num_dof), device=self.device) - 0.5)
 
         self.dof_pos[env_ids, :] = positions[:]
@@ -161,8 +175,15 @@ class CartpoleCmd(VecTask):
                                               gymtorch.unwrap_tensor(self.dof_state),
                                               gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
 
+        
+
+        # todo: play remote control
+        print("*****************playing******************")
+        print(self.config.test)
+
         #随机期望位置
         self.commands[env_ids] = torch_rand_float(-self.command_pos_range , self.command_pos_range, (len(env_ids), 1), device=self.device)
+
 
         self.reset_buf[env_ids] = 0
         self.progress_buf[env_ids] = 0

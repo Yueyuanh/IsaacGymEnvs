@@ -6,7 +6,7 @@ physics_engine: ${..physics_engine}
 # if given, will override the device setting in gym. 
 env:
   numEnvs: ${resolve_default:512,${...num_envs}}
-  envSpacing: 4.0  #每个并行环境的间距
+  envSpacing: 5.0  #每个并行环境的间距
   resetDist: 3.0   #重置时初始距离
   maxEffort: 400.0 #最大的力
   randomCommandPosRanges: 3.0 #设定位置范围
@@ -45,3 +45,4 @@ sim:
 
 task:
   randomize: False
+  play: False

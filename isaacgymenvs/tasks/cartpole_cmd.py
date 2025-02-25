@@ -179,9 +179,18 @@ class CartpoleCmd(VecTask):
 
         # todo: play remote control
         print("*****************playing******************")
-        print(self.config.test)
+ 
+        # if self.config.test:
 
-        #随机期望位置
+        #     # 监听键盘事件
+        #     self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_LEFT, "MOVE_LEFT")
+        #     self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_RIGHT, "MOVE_RIGHT")
+
+        #     # 设置 commands
+        #     self.commands[env_ids] = torch.tensor([[self.command_position]] * len(env_ids), device=self.device)
+
+        # else:
+        #     #随机期望位置
         self.commands[env_ids] = torch_rand_float(-self.command_pos_range , self.command_pos_range, (len(env_ids), 1), device=self.device)
 
 

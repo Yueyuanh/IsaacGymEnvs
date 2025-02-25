@@ -126,7 +126,6 @@ def launch_rlg_hydra(cfg: DictConfig):
     cfg.test = True
     cfg.num_envs = 1
 
-
     current_dir = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.join(current_dir,'cfg', 'play_config.yaml')
     config=OmegaConf.load(config_path)

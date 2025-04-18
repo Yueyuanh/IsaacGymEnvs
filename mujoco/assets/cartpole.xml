@@ -13,6 +13,7 @@
     </default>
   </default>
 
+
   <worldbody>
     <!-- 显示默认地面 -->
     <geom name="ground" type="plane" pos="0 0 0" size="100 100 0.001" quat="1 0 0 0" material="matplane" condim="3" conaffinity="15" rgba="0 0 0 1" />

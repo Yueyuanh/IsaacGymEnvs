@@ -178,7 +178,7 @@ class CartpoleCmd(VecTask):
         
 
         # todo: play remote control
-        print("*****************playing******************")
+        # print("*****************playing******************")
  
         # if self.config.test:
 

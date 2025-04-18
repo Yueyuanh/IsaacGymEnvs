@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="Yummy_Robot">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="2.8409901354327E-05 2.46544480867264E-05 0.002"
+        rpy="0 0 0" />
+      <mass
+        value="0.247615715480692" />
+      <inertia
+        ixx="0.00129403189153011"
+        ixy="9.67724143112491E-07"
+        ixz="-4.51639540384776E-18"
+        iyy="0.00129411626086441"
+        iyz="2.80709350314184E-21"
+        izz="0.0025874878438199" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="L0">
+    <inertial>
+      <origin
+        xyz="1.28870232038765E-05 -2.87681424912568E-05 0.0249199361471398"
+        rpy="0 0 0" />
+      <mass
+        value="0.278208173200074" />
+      <inertia
+        ixx="0.000256935622393261"
+        ixy="-6.4303112432835E-10"
+        ixz="-5.51880860497745E-10"
+        iyy="0.000257749415643912"
+        iyz="1.89890892602296E-08"
+        izz="0.000407884496140122" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L0.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L0.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J0"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="L0" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="L1">
+    <inertial>
+      <origin
+        xyz="-0.000481548713902503 -2.71670005935754E-10 0.0461894632655837"
+        rpy="0 0 0" />
+      <mass
+        value="0.34441629289114" />
+      <inertia
+        ixx="0.000273587077703993"
+        ixy="7.18005323704943E-09"
+        ixz="2.40798665316603E-06"
+        iyy="0.000293042687475978"
+        iyz="-6.02723353870862E-09"
+        izz="0.00024631720146591" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J1"
+    type="continuous">
+    <origin
+      xyz="0 0 0.054"
+      rpy="0 0 0" />
+    <parent
+      link="L0" />
+    <child
+      link="L1" />
+    <axis
+      xyz="0 0 -1" />
+  </joint>
+  <link
+    name="L2">
+    <inertial>
+      <origin
+        xyz="0.147399422230386 -2.87945438928118E-05 0.000815648688291471"
+        rpy="0 0 0" />
+      <mass
+        value="0.849556921256158" />
+      <inertia
+        ixx="0.000822493734654003"
+        ixy="9.3757393037198E-07"
+        ixz="-3.13865408042652E-05"
+        iyy="0.00174411539434368"
+        iyz="4.59604581258483E-07"
+        izz="0.00154138146149914" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J2"
+    type="revolute">
+    <origin
+      xyz="0 0 0.056"
+      rpy="1.57079632679372 -1.5707963267949 0" />
+    <parent
+      link="L1" />
+    <child
+      link="L2" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="L3">
+    <inertial>
+      <origin
+        xyz="0.00294653941692645 -0.0767000362272818 0.0140895648503954"
+        rpy="0 0 0" />
+      <mass
+        value="0.349266386051237" />
+      <inertia
+        ixx="0.000494264187881577"
+        ixy="3.5398575307068E-05"
+        ixz="-1.70729303613319E-06"
+        iyy="0.00029085794317086"
+        iyz="1.50944953841497E-05"
+        izz="0.000471123454372497" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J3"
+    type="revolute">
+    <origin
+      xyz="0.3 0 -0.013"
+      rpy="0 0 1.57079632679459" />
+    <parent
+      link="L2" />
+    <child
+      link="L3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="L4">
+    <inertial>
+      <origin
+        xyz="-5.33590269513606E-05 0.0012610091835103 0.178585107532826"
+        rpy="0 0 0" />
+      <mass
+        value="0.508934462712071" />
+      <inertia
+        ixx="0.00118659068710212"
+        ixy="4.84953407986366E-07"
+        ixz="9.41602772659357E-07"
+        iyy="0.00123807229599775"
+        iyz="-3.11940652631831E-05"
+        izz="0.000215723313802968" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J4"
+    type="revolute">
+    <origin
+      xyz="0 -0.0960000000000002 0.015"
+      rpy="1.5707963267949 0 -1.5707963267949" />
+    <parent
+      link="L3" />
+    <child
+      link="L4" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="L5">
+    <inertial>
+      <origin
+        xyz="0.0554275582447695 -8.43102749019664E-05 -0.0123559901652481"
+        rpy="0 0 0" />
+      <mass
+        value="0.199421539807047" />
+      <inertia
+        ixx="0.000154095694275757"
+        ixy="1.94979485782236E-07"
+        ixz="1.4766498691541E-05"
+        iyy="0.000263063343244189"
+        iyz="-3.30464015672368E-08"
+        izz="0.000239047984325112" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L5.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J5"
+    type="revolute">
+    <origin
+      xyz="0 -0.0129999999998806 0.270000000000008"
+      rpy="1.5707963267949 -1.5707963267949 0" />
+    <parent
+      link="L4" />
+    <child
+      link="L5" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="L6">
+    <inertial>
+      <origin
+        xyz="2.00328110335213E-05 -0.0113350896878707 0.0266092056252895"
+        rpy="0 0 0" />
+      <mass
+        value="0.186983003022658" />
+      <inertia
+        ixx="0.000124787922710441"
+        ixy="6.45720649922763E-07"
+        ixz="5.11912748065669E-09"
+        iyy="0.000169620141646579"
+        iyz="7.86562940534723E-06"
+        izz="0.00022741222304094" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L6.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/L6.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J6"
+    type="continuous">
+    <origin
+      xyz="0.107 0 -0.0149999999999897"
+      rpy="0 1.5707963267949 0" />
+    <parent
+      link="L5" />
+    <child
+      link="L6" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="Lpicker1">
+    <inertial>
+      <origin
+        xyz="0.0036107049840981 -0.012667844978679 0.000173926354598009"
+        rpy="0 0 0" />
+      <mass
+        value="0.0268795740661677" />
+      <inertia
+        ixx="6.36542587659304E-06"
+        ixy="9.23682773144026E-09"
+        ixz="4.75911037020634E-07"
+        iyy="6.15429668987293E-06"
+        iyz="-7.20625834120107E-07"
+        izz="3.42901137291843E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/Lpicker1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/Lpicker1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Jpicker1"
+    type="prismatic">
+    <origin
+      xyz="-0.010054 0.0004 0.091643"
+      rpy="0 0 -1.5708" />
+    <parent
+      link="L6" />
+    <child
+      link="Lpicker1" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-0.01"
+      upper="0.02"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="Lpicker2">
+    <inertial>
+      <origin
+        xyz="-0.00361070498406746 0.0126678449785079 0.00017392635466229"
+        rpy="0 0 0" />
+      <mass
+        value="0.0268795740661677" />
+      <inertia
+        ixx="6.36542587659058E-06"
+        ixy="9.236827732381E-09"
+        ixz="-4.75911037023351E-07"
+        iyy="6.15429668987296E-06"
+        iyz="7.20625834120076E-07"
+        izz="3.42901137292091E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/Lpicker2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/Lpicker2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Jpicker2"
+    type="prismatic">
+    <origin
+      xyz="0.009946 0.0006 0.091643"
+      rpy="0 0 -1.5708" />
+    <parent
+      link="L6" />
+    <child
+      link="Lpicker2" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-0.02"
+      upper="0.01"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="camera">
+    <inertial>
+      <origin
+        xyz="1.33597993778878E-13 -0.0848133325268019 0.0210131141167913"
+        rpy="0 0 0" />
+      <mass
+        value="0.0106507188014664" />
+      <inertia
+        ixx="1.36941163336407E-06"
+        ixy="-5.54437751150509E-22"
+        ixz="-8.64555073299252E-22"
+        iyy="1.42474418080902E-06"
+        iyz="2.08166196695518E-07"
+        izz="2.15255225217963E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/camera.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://Yummy_Robot/meshes/camera.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Jcamera"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="L6" />
+    <child
+      link="camera" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>

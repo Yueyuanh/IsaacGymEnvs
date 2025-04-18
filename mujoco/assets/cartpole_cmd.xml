@@ -1,0 +1,69 @@
+<mujoco model="cartpole">
+  <option timestep="0.001"/>
+  
+  <!-- 视觉设置 -->
+<visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="-130" elevation="-20"/>
+</visual>
+  
+
+  <!-- 材质定义 -->
+  <asset>
+    <material name="slider_mat" rgba="1 1 0 1"/>
+    <material name="cart_mat" rgba="0.3 0.5 0.7 1"/>
+    <material name="pole_mat" rgba="0.2 0.6 1 1"/>
+
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.1 0.2 0.3" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="1 1" reflectance="0.2"/>
+  
+  </asset>
+  
+  <!-- 世界环境 -->
+  <worldbody>
+    <!-- 天空光照 -->
+    <light pos="0 0 1" dir="0 0 -1" directional="true"/>
+    <!-- 地面 -->
+    <geom name="floor" size="0 0 0.1" type="plane" material="groundplane"/>   
+
+    <camera name="side_view" mode="fixed" pos="0 0 1" xyaxes="0 -1 0 0 0 1" fovy="60"/>
+
+
+    <!-- 滑轨（固定在地面上方1m处，长8m） -->
+    <body name="slider" pos="0 0 1.5">
+      <geom name="slider_geom" type="box" size="0.015 4 0.015" material="slider_mat"/>
+      <!-- 滑轨是固定的，没有关节 -->
+    </body>
+    
+    <!-- 小车（可沿滑轨移动） -->
+    <body name="cart" pos="0 0 1.5">
+      <!-- 滑动关节，限制在 -4m 到 4m 之间 -->
+      <joint name="slider_to_cart" type="slide" axis="0 1 0" 
+             limited="true" range="-4 4" damping="0.05" frictionloss="0.1"/>
+
+      <!-- 小车尺寸：0.2×0.25×0.2（MuJoCo用半尺寸表示） -->
+      <geom name="cart_geom" type="box" size="0.1 0.125 0.1" material="cart_mat"/>
+      <inertial pos="0 0 0" mass="1" diaginertia="0.002 0.002 0.002"/>
+      
+      <!-- 杆子（作为小车的子物体，固定在小车上） -->
+      <body name="pole" pos="-0.15 0 0">  <!-- 杆子下端固定在小车顶部 -->
+        <!-- 铰链关节（旋转轴：X轴），使杆子可以自由摆动 -->
+      <joint name="cart_to_pole" type="hinge" axis="1 0 0" 
+             limited="false" damping="0.05" />
+
+       <!-- 杆子尺寸：0.04×0.06×1.0（半尺寸：0.02×0.03×0.5） -->
+        <!-- 由于杆子下端固定在铰链上，几何体需要偏移 0.5m（半长度） -->
+        <geom name="pole_geom" type="box" size="0.02 0.03 0.5" pos="0 0 0.5" material="pole_mat"/>
+        <!-- 惯性参数（质心在杆子中间，即 0.47m 处） -->
+        <inertial pos="0 0 0.5" mass="1" diaginertia="0.0084 0.0081 0.0004"/>
+      </body>
+    </body>
+  </worldbody>
+  
+  <!-- 执行器（控制小车移动） -->
+  <actuator>
+    <motor name="slider_motor" joint="slider_to_cart" gear="1" ctrllimited="true" ctrlrange="-10 10"/>
+  </actuator>
+</mujoco>

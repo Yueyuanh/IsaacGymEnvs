@@ -7,7 +7,7 @@
                 <box size="0.03 8 0.03"/>
             </geometry>
             <material name="slider_mat">
-                <color rgba="0.9 0.6 0.2 1"/>
+                <color rgba="1 1 0 1"/>
             </material>
         </visual>
         <collision>
@@ -45,7 +45,7 @@
             </geometry>
             <origin xyz="0 0 0.47"/>
             <material name="pole_mat">
-                <color rgba="0.1 0.1 0.3 1"/>
+                <color rgba="0.2 0.6 1 1"/>
             </material>
         </visual>
         <collision>

@@ -563,3 +563,7 @@ reset = torch.where(progress_buf >= max_episode_length - 1, torch.ones_like(rese
 ```
 
 如果小车的位置超出了`reset_dist`，或者摆杆的角度超出了`π/2`，或者回合已经走到了最大步数（`max_episode_length`），那么`reset`标志就会被设为1，表示当前回合需要复位（失败）。否则保持原来的`reset_buf`值。
+
+```
+python play.py checkpoint=runs_great/CartpoleCmd_18-23-00-03/nn/CartpoleCmd.pth 
+```

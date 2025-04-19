@@ -35,9 +35,9 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    force = -1  # 向左施加力
+                    force = -20  # 向左施加力
                 elif event.key == pygame.K_RIGHT:
-                    force = 1  # 向右施加力
+                    force = 20  # 向右施加力
             elif event.type == pygame.KEYUP:
                 if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
                     force = 0.0  # 松开键，力归零
@@ -47,7 +47,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         print(data.ctrl[0])
 
         # 运行 MuJoCo 仿真
-        mujoco.mj_step(model, data)
+        # mujoco.mj_step(model, data)
 
         # 更新 MuJoCo 视图
         viewer.sync()

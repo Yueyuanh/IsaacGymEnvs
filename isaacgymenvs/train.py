@@ -70,6 +70,8 @@ def preprocess_train_config(cfg, config_dict):
     return config_dict
 
 
+'''加载环境参数'''
+
 @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
 def launch_rlg_hydra(cfg: DictConfig):
 
@@ -128,6 +130,7 @@ def launch_rlg_hydra(cfg: DictConfig):
     config.test=False
     OmegaConf.save(config, "./cfg/play_config.yaml")
 
+    '''创建isaacgym环境函数'''
     def create_isaacgym_env(**kwargs):
         envs = isaacgymenvs.make(
             cfg.seed, 
@@ -152,6 +155,7 @@ def launch_rlg_hydra(cfg: DictConfig):
                 video_length=cfg.capture_video_len,
             )
         return envs
+
 
     env_configurations.register('rlgpu', {
         'vecenv_type': 'RLGPU',

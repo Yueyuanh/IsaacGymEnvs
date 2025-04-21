@@ -1,34 +1,38 @@
 params:
-  seed: ${...seed}
+  seed: ${...seed}  # 随机种子，通常是通过其他部分传入
 
   algo:
-    name: a2c_continuous
+    name: a2c_continuous  # 算法使用连续版本的 A2C
 
   model:
-    name: continuous_a2c_logstd
+    name: continuous_a2c_logstd  # 模型名称，表示使用高斯策略（log 标准差）
 
   network:
-    name: actor_critic
-    separate: False
+    name: actor_critic  # 使用 actor-critic 网络结构
+    separate: False  # 策略和价值网络共享参数
+
     space:
       continuous:
-        mu_activation: None
-        sigma_activation: None
+        mu_activation: None  # 动作均值的激活函数（无激活函数）
+        sigma_activation: None  # 动作方差（或标准差）输出无激活
 
         mu_init:
-          name: default
+          name: default  # 动作均值初始化方式（默认）
+
         sigma_init:
           name: const_initializer
-          val: 0
-        fixed_sigma: True
+          val: 0  # sigma 初始化为常数0，通常表示 log_std = 0 ⇒ std = 1
+
+        fixed_sigma: True  # 使用固定的 sigma，而不是神经网络输出它
+
     mlp:
-      units: [32, 32]
-      activation: elu
-      
+      units: [32, 32]  # MLP 使用两层，每层 32 个单元
+      activation: elu  # 激活函数为 ELU
       initializer:
         name: default
       regularizer:
         name: None
+
 
   load_checkpoint: ${if:${...checkpoint},True,False} # flag which sets whether to load the checkpoint
   load_path: ${...checkpoint} # path to the checkpoint to load

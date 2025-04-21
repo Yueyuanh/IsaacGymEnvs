@@ -47,9 +47,10 @@ class CartpoleCmd(VecTask):
         self.cfg["env"]["numObservations"] = 5
         self.cfg["env"]["numActions"] = 1
 
-
+        # 初始化父类对象
         super().__init__(config=self.cfg, rl_device=rl_device, sim_device=sim_device, graphics_device_id=graphics_device_id, headless=headless, virtual_screen_capture=virtual_screen_capture, force_render=force_render)
 
+        # 获取倒立摆状态
         dof_state_tensor = self.gym.acquire_dof_state_tensor(self.sim)
         self.dof_state = gymtorch.wrap_tensor(dof_state_tensor)
         self.dof_pos = self.dof_state.view(self.num_envs, self.num_dof, 2)[..., 0]
@@ -58,12 +59,16 @@ class CartpoleCmd(VecTask):
         # 新增随机位置控制
         self.command_pos_range = self.cfg["env"]["randomCommandPosRanges"]#控制指令
         self.commands = torch.zeros(self.num_envs, 1, dtype=torch.float, device=self.device, requires_grad=False)#增加控制指令
+        self.command_position=0
 
         # 读取环境变量play
         current_dir = os.path.dirname(os.path.realpath(__file__))
         config_path = os.path.join(current_dir, '..', 'cfg', 'play_config.yaml')
         self.config=OmegaConf.load(config_path)
         print(self.config.test)
+
+        self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_D, "MOVE_LEFT")
+        self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_A, "MOVE_RIGHT")
 
 
     def create_sim(self):
@@ -135,19 +140,7 @@ class CartpoleCmd(VecTask):
             self.envs.append(env_ptr)
             self.cartpole_handles.append(cartpole_handle)
 
-    def compute_reward(self): #计算奖励
-        # retrieve environment observations from buffer
-        pole_angle = self.obs_buf[:, 2]
-        pole_vel   = self.obs_buf[:, 3]
-        cart_vel   = self.obs_buf[:, 1]
-        cart_pos   = self.obs_buf[:, 0]
-        command    = self.obs_buf[:, 4]
 
-        self.rew_buf[:], self.reset_buf[:] = compute_cartpole_reward(
-            command,
-            pole_angle, pole_vel, cart_vel, cart_pos,
-            self.reset_dist, self.reset_buf, self.progress_buf, self.max_episode_length
-        )
 
     def compute_observations(self, env_ids=None): #观测器
         if env_ids is None:
@@ -163,6 +156,21 @@ class CartpoleCmd(VecTask):
 
         return self.obs_buf
 
+    def compute_reward(self): #计算奖励
+        # retrieve environment observations from buffer
+        pole_angle = self.obs_buf[:, 2]
+        pole_vel   = self.obs_buf[:, 3]
+        cart_vel   = self.obs_buf[:, 1]
+        cart_pos   = self.obs_buf[:, 0]
+        command    = self.obs_buf[:, 4]
+
+        self.rew_buf[:], self.reset_buf[:] = compute_cartpole_reward(
+            command,
+            pole_angle, pole_vel, cart_vel, cart_pos,
+            self.reset_dist, self.reset_buf, self.progress_buf, self.max_episode_length
+        )
+
+        
     def reset_idx(self, env_ids): #复位
         positions  = 0.2 * (torch.rand((len(env_ids), self.num_dof), device=self.device) - 0.5)
         velocities = 0.5 * (torch.rand((len(env_ids), self.num_dof), device=self.device) - 0.5)
@@ -175,23 +183,11 @@ class CartpoleCmd(VecTask):
                                               gymtorch.unwrap_tensor(self.dof_state),
                                               gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
 
+
         
-
-        # todo: play remote control
-        # print("*****************playing******************")
- 
-        # if self.config.test:
-
-        #     # 监听键盘事件
-        #     self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_LEFT, "MOVE_LEFT")
-        #     self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_RIGHT, "MOVE_RIGHT")
-
-        #     # 设置 commands
-        #     self.commands[env_ids] = torch.tensor([[self.command_position]] * len(env_ids), device=self.device)
-
-        # else:
-        #     #随机期望位置
-        self.commands[env_ids] = torch_rand_float(-self.command_pos_range , self.command_pos_range, (len(env_ids), 1), device=self.device)
+        #训练模式下随机期望位置
+        if not self.config.test:
+            self.commands[env_ids] = torch_rand_float(-self.command_pos_range , self.command_pos_range, (len(env_ids), 1), device=self.device)
 
 
         self.reset_buf[env_ids] = 0
@@ -203,6 +199,7 @@ class CartpoleCmd(VecTask):
         actions_tensor = torch.zeros(self.num_envs * self.num_dof, device=self.device, dtype=torch.float)
         actions_tensor[::self.num_dof] = actions.to(self.device).squeeze() * self.max_push_effort
         forces = gymtorch.unwrap_tensor(actions_tensor)
+        # 施加力
         self.gym.set_dof_actuation_force_tensor(self.sim, forces)
 
 
@@ -213,9 +210,33 @@ class CartpoleCmd(VecTask):
         if len(env_ids) > 0:
             self.reset_idx(env_ids)
 
+        if self.config.test:
+            # 查询是否有动作触发
+            for evt in self.gym.query_viewer_action_events(self.viewer):
+                if evt.action == "MOVE_LEFT":
+                    self.command_position += 0.1
+                elif evt.action == "MOVE_RIGHT":
+                    self.command_position -= 0.1
+
+            # 限制 command_position 范围
+            self.command_position = max(-self.command_pos_range, min(self.command_pos_range, self.command_position))
+
+            if self.num_envs > 0:
+                all_env_ids = torch.arange(self.num_envs, device=self.device, dtype=torch.long)
+                self.commands[all_env_ids] = torch.tensor(
+                    [[float(self.command_position)]] * self.num_envs,
+                    device=self.device,
+                    dtype=torch.float
+                )
+            # print(self.command_position)
+
+
+
+
         self.compute_observations()
         self.compute_reward()
-        
+       
+
         # debug viz
         self.gym.clear_lines(self.viewer)
         if 1:#self.viewer and self.debug_viz:

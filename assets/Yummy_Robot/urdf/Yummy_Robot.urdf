@@ -26,7 +26,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/base_link.STL" />
+          filename="../meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -40,7 +40,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/base_link.STL" />
+          filename="../meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -66,7 +66,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L0.STL" />
+          filename="../meshes/L0.STL" />
       </geometry>
       <material
         name="">
@@ -80,7 +80,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L0.STL" />
+          filename="../meshes/L0.STL" />
       </geometry>
     </collision>
   </link>
@@ -119,7 +119,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L1.STL" />
+          filename="../meshes/L1.STL" />
       </geometry>
       <material
         name="">
@@ -133,7 +133,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L1.STL" />
+          filename="../meshes/L1.STL" />
       </geometry>
     </collision>
   </link>
@@ -172,7 +172,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L2.STL" />
+          filename="../meshes/L2.STL" />
       </geometry>
       <material
         name="">
@@ -186,7 +186,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L2.STL" />
+          filename="../meshes/L2.STL" />
       </geometry>
     </collision>
   </link>
@@ -230,7 +230,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L3.STL" />
+          filename="../meshes/L3.STL" />
       </geometry>
       <material
         name="">
@@ -244,7 +244,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L3.STL" />
+          filename="../meshes/L3.STL" />
       </geometry>
     </collision>
   </link>
@@ -288,7 +288,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L4.STL" />
+          filename="../meshes/L4.STL" />
       </geometry>
       <material
         name="">
@@ -302,7 +302,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L4.STL" />
+          filename="../meshes/L4.STL" />
       </geometry>
     </collision>
   </link>
@@ -346,7 +346,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L5.STL" />
+          filename="../meshes/L5.STL" />
       </geometry>
       <material
         name="">
@@ -360,7 +360,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L5.STL" />
+          filename="../meshes/L5.STL" />
       </geometry>
     </collision>
   </link>
@@ -404,7 +404,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L6.STL" />
+          filename="../meshes/L6.STL" />
       </geometry>
       <material
         name="">
@@ -418,7 +418,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/L6.STL" />
+          filename="../meshes/L6.STL" />
       </geometry>
     </collision>
   </link>
@@ -462,7 +462,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/Lpicker1.STL" />
+          filename="../meshes/Lpicker1.STL" />
       </geometry>
       <material
         name="">
@@ -476,7 +476,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/Lpicker1.STL" />
+          filename="../meshes/Lpicker1.STL" />
       </geometry>
     </collision>
   </link>
@@ -520,7 +520,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/Lpicker2.STL" />
+          filename="../meshes/Lpicker2.STL" />
       </geometry>
       <material
         name="">
@@ -534,7 +534,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/Lpicker2.STL" />
+          filename="../meshes/Lpicker2.STL" />
       </geometry>
     </collision>
   </link>
@@ -578,7 +578,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/camera.STL" />
+          filename="../meshes/camera.STL" />
       </geometry>
       <material
         name="">
@@ -592,7 +592,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://Yummy_Robot/meshes/camera.STL" />
+          filename="../meshes/camera.STL" />
       </geometry>
     </collision>
   </link>

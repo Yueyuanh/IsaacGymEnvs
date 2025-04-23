@@ -293,7 +293,7 @@ class VecTask(Env):
             config_path = os.path.join(current_dir, '..','..', 'cfg', 'play_config.yaml')
             vec_config=OmegaConf.load(config_path)
 
-            # set the camera position based on up axis
+            # 根据train和play视角不同
             sim_params = self.gym.get_sim_params(self.sim)
             if sim_params.up_axis == gymapi.UP_AXIS_Z:
                 if vec_config.test:
@@ -352,7 +352,7 @@ class VecTask(Env):
             quit()
 
         return sim
-
+ 
     def get_state(self):
         """Returns the state buffer of the environment (the privileged observations for asymmetric training)."""
         return torch.clamp(self.states_buf, -self.clip_obs, self.clip_obs).to(self.rl_device)

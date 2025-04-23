@@ -40,8 +40,8 @@
     <!-- 小车（可沿滑轨移动） -->
     <body name="cart" pos="0 0 1.5">
       <!-- 滑动关节，限制在 -4m 到 4m 之间 -->
-      <joint name="slider_to_cart" type="slide" axis="0 1 0" 
-             limited="true" range="-4 4" damping="0.05" frictionloss="0.1"/>
+      <!-- <joint name="slider_to_cart" type="slide" axis="0 1 0" limited="true" range="-4 4"/> -->
+      <joint name="slider_to_cart" type="slide" axis="0 1 0" limited="true" range="-4 4" damping="0.00001"/>
 
       <!-- 小车尺寸：0.2×0.25×0.2（MuJoCo用半尺寸表示） -->
       <geom name="cart_geom" type="box" size="0.1 0.125 0.1" material="cart_mat"/>
@@ -50,20 +50,31 @@
       <!-- 杆子（作为小车的子物体，固定在小车上） -->
       <body name="pole" pos="-0.15 0 0">  <!-- 杆子下端固定在小车顶部 -->
         <!-- 铰链关节（旋转轴：X轴），使杆子可以自由摆动 -->
-      <joint name="cart_to_pole" type="hinge" axis="1 0 0" 
-             limited="false" damping="0.05" />
+      <!-- <joint name="cart_to_pole" type="hinge" axis="1 0 0" limited="false" /> -->
+      <joint name="cart_to_pole" type="hinge" axis="1 0 0" limited="false" damping="0.00001" />
 
        <!-- 杆子尺寸：0.04×0.06×1.0（半尺寸：0.02×0.03×0.5） -->
         <!-- 由于杆子下端固定在铰链上，几何体需要偏移 0.5m（半长度） -->
         <geom name="pole_geom" type="box" size="0.02 0.03 0.5" pos="0 0 0.5" material="pole_mat"/>
-        <!-- 惯性参数（质心在杆子中间，即 0.47m 处） -->
-        <inertial pos="0 0 0.5" mass="1" diaginertia="0.0084 0.0081 0.0004"/>
+        <!-- 惯性参数（质心在杆子中间） -->
+        <inertial pos="0 0 0.5" mass="1" diaginertia="0.0836 0.0835 0.00043"/>
+        <site name="pole_center" pos="0 0 0.5" size="0.01" type="sphere" rgba="1 0 0 0.5"/>
       </body>
     </body>
   </worldbody>
   
   <!-- 执行器（控制小车移动） -->
   <actuator>
-    <motor name="slider_motor" joint="slider_to_cart" gear="1" ctrllimited="true" ctrlrange="-10 10"/>
+    <motor name="slider_motor" joint="slider_to_cart" gear="1" ctrllimited="false" />
   </actuator>
+
+<!-- 传感器 -->
+  <sensor>
+    <jointpos name="cart_position" joint="slider_to_cart"/>
+    <jointvel name="cart_velocity" joint="slider_to_cart"/>
+    <jointpos name="pole_angle" joint="cart_to_pole"/>
+    <jointvel name="pole_velocity" joint="cart_to_pole"/>
+    <accelerometer name="pole_accel" site="pole_center"/>
+  </sensor>
+
 </mujoco>

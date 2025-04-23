@@ -1,0 +1,72 @@
+params:
+  seed: ${...seed}  # 随机种子，通常是通过其他部分传入
+
+  algo:
+    name: a2c_continuous  # 算法使用连续版本的 A2C
+
+  model:
+    name: continuous_a2c_logstd  # 模型名称，表示使用高斯策略（log 标准差）
+
+  network:
+    name: actor_critic  # 使用 actor-critic 网络结构
+    separate: False  # 策略和价值网络共享参数
+
+    space:
+      continuous:
+        mu_activation: None  # 动作均值的激活函数（无激活函数）
+        sigma_activation: None  # 动作方差（或标准差）输出无激活
+
+        mu_init:
+          name: default  # 动作均值初始化方式（默认）
+
+        sigma_init:
+          name: const_initializer
+          val: 0  # sigma 初始化为常数0，通常表示 log_std = 0 ⇒ std = 1
+
+        fixed_sigma: True  # 使用固定的 sigma，而不是神经网络输出它
+
+    mlp:
+      units: [32, 32]  # MLP 使用两层，每层 32 个单元
+      activation: elu  # 激活函数为 ELU
+      initializer:
+        name: default
+      regularizer:
+        name: None
+
+
+  load_checkpoint: ${if:${...checkpoint},True,False} # flag which sets whether to load the checkpoint
+  load_path: ${...checkpoint} # path to the checkpoint to load
+
+  config:
+    name: ${resolve_default:CartpoleCmd,${....experiment}}
+    full_experiment_name: ${.name}
+    env_name: rlgpu
+    multi_gpu: ${....multi_gpu}
+    ppo: True
+    mixed_precision: False
+    normalize_input: True
+    normalize_value: True
+    num_actors: ${....task.env.numEnvs}
+    reward_shaper:
+      scale_value: 0.1
+    normalize_advantage: True
+    gamma: 0.99
+    tau: 0.95
+    learning_rate: 3e-4
+    lr_schedule: adaptive
+    kl_threshold: 0.008
+    score_to_win: 20000
+    max_epochs: ${resolve_default:100,${....max_iterations}}
+    save_best_after: 50
+    save_frequency: 25
+    grad_norm: 1.0
+    entropy_coef: 0.0
+    truncate_grads: True
+    e_clip: 0.2
+    horizon_length: 16
+    minibatch_size: 8192
+    mini_epochs: 8
+    critic_coef: 4
+    clip_value: True
+    seq_len: 4
+    bounds_loss_coef: 0.0001

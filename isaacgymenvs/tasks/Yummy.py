@@ -35,7 +35,7 @@ from .base.vec_task import VecTask
 from omegaconf import OmegaConf
 import torch.utils.dlpack
 
-class CartpoleCmd(VecTask):
+class Yummy(VecTask):
 
     def __init__(self, cfg, rl_device, sim_device, graphics_device_id, headless, virtual_screen_capture, force_render):
         self.cfg = cfg
@@ -95,7 +95,7 @@ class CartpoleCmd(VecTask):
         upper = gymapi.Vec3(0.5 * spacing, spacing, spacing)
 
         asset_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../assets")
-        asset_file = "urdf/cartpole_cmd.urdf"
+        asset_file = "Yummy_Robot/urdf/Yummy_Robot.urdf"
 
         if "asset" in self.cfg["env"]:
             asset_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.cfg["env"]["asset"].get("assetRoot", asset_root))
@@ -114,14 +114,14 @@ class CartpoleCmd(VecTask):
         # 加载资产并旋转
         pose = gymapi.Transform()
         if self.up_axis == 'z':
-            pose.p.z = 2.0
+            pose.p.z = 0.0
             # asset is rotated z-up by default, no additional rotations needed
             pose.r = gymapi.Quat(0.0, 0.0, 0.0, 1.0)
         else:
-            pose.p.y = 2.0
+            pose.p.y = 0.0
             pose.r = gymapi.Quat(-np.sqrt(2)/2, 0.0, 0.0, np.sqrt(2)/2)
 
-        self.cartpole_handles = []
+        self.Yummy_handle = []
         self.envs = []
         for i in range(self.num_envs):
             # create env instance
@@ -129,17 +129,17 @@ class CartpoleCmd(VecTask):
                 self.sim, lower, upper, num_per_row
             )
             # 资产创建Actor
-            cartpole_handle = self.gym.create_actor(env_ptr, cartpole_asset, pose, "cartpole", i, 1, 0)
+            Yummy_handle = self.gym.create_actor(env_ptr, cartpole_asset, pose, "Yummy", i, 1, 0)
 
-            dof_props = self.gym.get_actor_dof_properties(env_ptr, cartpole_handle)
+            dof_props = self.gym.get_actor_dof_properties(env_ptr, Yummy_handle)
             dof_props['driveMode'][0] = gymapi.DOF_MODE_EFFORT #扭矩模式
             dof_props['driveMode'][1] = gymapi.DOF_MODE_NONE
             dof_props['stiffness'][:] = 0.0
             dof_props['damping'][:] = 0.0
-            self.gym.set_actor_dof_properties(env_ptr, cartpole_handle, dof_props)
+            self.gym.set_actor_dof_properties(env_ptr, Yummy_handle, dof_props)
 
             self.envs.append(env_ptr)
-            self.cartpole_handles.append(cartpole_handle)
+            self.Yummy_handle.append(Yummy_handle)
 
 
 
@@ -247,7 +247,7 @@ class CartpoleCmd(VecTask):
             for i in range(self.num_envs):
                 #self.cfg["env"]['envSpacing']
                 origin = self.gym.get_env_origin(self.envs[i])#获取空间原点
-                location=(origin.x, self.commands[i]+origin.y , 2.0)
+                location=(origin.x, self.commands[i]+origin.y , 0.50)
                 color=(1, 0, 0)
                 self.draw_sphere(location,color)
                 #gymutil.draw_lines(sphere_geom, self.gym, self.viewer, 0, sphere_pose)

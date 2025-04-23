@@ -50,6 +50,8 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     t = 0.0
     while viewer.is_running():
         mujoco.mj_step(model, data)
+        start_time = time.time()  # 记录帧开始时间
+
 
         cart_pos   = get_sensor_value("cart_position")[0]
         cart_vel   = get_sensor_value("cart_velocity")[0]
@@ -64,15 +66,9 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
             pos_set = 0
         # pos_set=0
         speed_set = Position_PID.compute(pos_set,-cart_pos) 
-
-        # if t>=1:
-        #     speed_set = 1
-        # else:
-        #     speed_set = 0
-        # speed_set=0
-
+        
         angle_set = Speed_PID.compute(speed_set,-cart_vel_lpf)
-        print(angle_set,"  ",cart_vel_lpf)
+        # print(angle_set,"  ",cart_vel_lpf)
         # angle_set = 0.1
         force = Angle_PID.compute(angle_set, pole_angle)
         data.ctrl[0] = force
@@ -89,6 +85,12 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         time.sleep(dt)
         t += dt
 
+
+        # === 计算和显示帧率 ===
+        frame_time = time.time() - start_time
+        fps = 1.0 / frame_time if frame_time > 0 else 0
+        print(f"Time: {t:.2f} sec | FPS: {fps:.2f}")
+        # viewer.title = f"CartPole - t={t:.2f}s | FPS={fps:.1f}"
 
 
 # 仿真关闭后绘图

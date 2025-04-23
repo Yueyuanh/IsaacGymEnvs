@@ -1,0 +1,35 @@
+import torch
+import torch.nn as nn
+
+OBS_DIM = 5
+ACT_DIM = 1
+
+class A2CNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.actor_mlp = nn.Sequential(
+            nn.Linear(OBS_DIM, 32),
+            nn.ELU(),
+            nn.Linear(32, 32),
+            nn.ELU()
+        )
+        self.mu = nn.Linear(32, ACT_DIM)
+        self.value = nn.Linear(32, 1)
+        self.sigma = nn.Parameter(torch.zeros(ACT_DIM), requires_grad=False)
+
+    def forward(self, obs):
+        x = self.actor_mlp(obs)
+        mu = self.mu(x)
+        value = self.value(x)
+        std = self.sigma.exp()
+        return mu, std, value
+
+    def act(self, obs):
+        mu, std, _ = self.forward(obs)
+        dist = torch.distributions.Normal(mu, std)
+        action = dist.sample()
+        return action.clamp(-1.0, 1.0)
+class FullModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.a2c_network = A2CNetwork()

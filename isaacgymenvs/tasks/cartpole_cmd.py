@@ -43,7 +43,7 @@ class CartpoleCmd(VecTask):
         self.reset_dist = self.cfg["env"]["resetDist"]
 
         self.max_push_effort = self.cfg["env"]["maxEffort"]
-        self.max_episode_length = 5000
+        self.max_episode_length = 500
 
         self.cfg["env"]["numObservations"] = 5
         self.cfg["env"]["numActions"] = 1
@@ -71,6 +71,9 @@ class CartpoleCmd(VecTask):
         self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_D, "MOVE_LEFT")
         self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_A, "MOVE_RIGHT")
 
+        # 观测器log
+        self.obs_log_interval = 50
+        self.obs_log_step = 0
 
     def create_sim(self):
         # set the up axis to be z-up given that assets are y-up by default
@@ -159,11 +162,15 @@ class CartpoleCmd(VecTask):
 
     def compute_reward(self): #计算奖励
         # retrieve environment observations from buffer
+
+        cart_pos   = self.obs_buf[:, 0]
+        cart_vel   = self.obs_buf[:, 1]
         pole_angle = self.obs_buf[:, 2]
         pole_vel   = self.obs_buf[:, 3]
-        cart_vel   = self.obs_buf[:, 1]
-        cart_pos   = self.obs_buf[:, 0]
         command    = self.obs_buf[:, 4]
+
+        # print(cart_pos,cart_vel)
+    
 
         self.rew_buf[:], self.reset_buf[:] = compute_cartpole_reward(
             command,

@@ -1,72 +1,80 @@
 params:
-  seed: ${...seed}  # 随机种子，通常是通过其他部分传入
+  seed: ${...seed}  # 随机种子，用于结果复现
 
   algo:
-    name: a2c_continuous  # 算法使用连续版本的 A2C
+    name: a2c_continuous  # 使用连续动作空间的 A2C（Advantage Actor-Critic）算法
 
   model:
-    name: continuous_a2c_logstd  # 模型名称，表示使用高斯策略（log 标准差）
+    name: continuous_a2c_logstd  # 模型名，表示使用 log(σ) 的高斯策略网络
 
   network:
-    name: actor_critic  # 使用 actor-critic 网络结构
-    separate: False  # 策略和价值网络共享参数
+    name: actor_critic  # 网络结构为 Actor-Critic（策略和价值共享或不共享）
+    separate: False  # 策略网络和价值网络共享 MLP 参数
 
     space:
       continuous:
-        mu_activation: None  # 动作均值的激活函数（无激活函数）
-        sigma_activation: None  # 动作方差（或标准差）输出无激活
+        mu_activation: None  # 动作均值（μ）输出层不使用激活函数（线性输出）
+        sigma_activation: None  # 标准差（σ）输出层无激活（若不固定 σ 时）
 
         mu_init:
-          name: default  # 动作均值初始化方式（默认）
+          name: default  # 均值层初始化方式（默认）
 
         sigma_init:
-          name: const_initializer
-          val: 0  # sigma 初始化为常数0，通常表示 log_std = 0 ⇒ std = 1
+          name: const_initializer  # 方差初始化方式
+          val: 0  # 初始化 log(σ)=0 ⇒ σ=1（表示标准差初始为 1）
 
-        fixed_sigma: True  # 使用固定的 sigma，而不是神经网络输出它
+        fixed_sigma: True  # 是否使用固定的 sigma（即 sigma 是常数，不由网络输出）
 
     mlp:
-      units: [32, 32]  # MLP 使用两层，每层 32 个单元
-      activation: elu  # 激活函数为 ELU
+      units: [32, 32]  # 两层 MLP，每层 32 个神经元
+      activation: elu  # 使用 ELU 激活函数
       initializer:
-        name: default
+        name: default  # 使用默认初始化方式
       regularizer:
-        name: None
+        name: None  # 不使用正则化（如 L2）
 
-
-  load_checkpoint: ${if:${...checkpoint},True,False} # flag which sets whether to load the checkpoint
-  load_path: ${...checkpoint} # path to the checkpoint to load
+  load_checkpoint: ${if:${...checkpoint},True,False}  # 是否加载已有的 checkpoint（模型参数）
+  load_path: ${...checkpoint}  # 指定 checkpoint 路径
 
   config:
-    name: ${resolve_default:CartpoleCmd,${....experiment}}
-    full_experiment_name: ${.name}
-    env_name: rlgpu
-    multi_gpu: ${....multi_gpu}
-    ppo: True
-    mixed_precision: False
-    normalize_input: True
-    normalize_value: True
-    num_actors: ${....task.env.numEnvs}
+    name: ${resolve_default:CartpoleCmd,${....experiment}}  # 训练任务名称（默认 CartpoleCmd）
+    full_experiment_name: ${.name}  # 完整实验名（可自定义）
+    env_name: rlgpu  # 环境名称，RL-Games 使用的默认环境
+    multi_gpu: ${....multi_gpu}  # 是否启用多 GPU
+    ppo: True  # 启用 PPO 策略更新方式（即 A2C 实际用的是 PPO 更新）
+    mixed_precision: False  # 是否使用混合精度训练（False 表示用全精度）
+
+    normalize_input: True  # 是否对观测进行归一化
+    normalize_value: True  # 是否对 value 值归一化
+    num_actors: ${....task.env.numEnvs}  # 使用的环境并行数（多线程/进程）
+
     reward_shaper:
-      scale_value: 0.1
-    normalize_advantage: True
-    gamma: 0.99
-    tau: 0.95
-    learning_rate: 3e-4
-    lr_schedule: adaptive
-    kl_threshold: 0.008
-    score_to_win: 20000
-    max_epochs: ${resolve_default:100,${....max_iterations}}
-    save_best_after: 50
-    save_frequency: 25
-    grad_norm: 1.0
-    entropy_coef: 0.0
-    truncate_grads: True
-    e_clip: 0.2
-    horizon_length: 16
-    minibatch_size: 8192
-    mini_epochs: 8
-    critic_coef: 4
-    clip_value: True
-    seq_len: 4
-    bounds_loss_coef: 0.0001
+      scale_value: 0.1  # 奖励缩放因子（影响 reward 的尺度）
+
+    normalize_advantage: True  # 是否对优势函数进行归一化
+    gamma: 0.99  # 折扣因子（未来奖励的折扣比例）
+    tau: 0.95  # GAE 的时间差平滑参数（越小越“短视”）
+
+    learning_rate: 3e-4  # 初始学习率
+    lr_schedule: adaptive  # 学习率自适应调整策略
+    kl_threshold: 0.008  # KL 散度阈值，用于控制策略更新的步幅
+    score_to_win: 20000  # 满足该分数则视为训练成功
+
+    max_epochs: ${resolve_default:2000,${....max_iterations}}  # 最大训练轮数（默认 2000）
+    save_best_after: 50  # 训练多少轮后才开始保存最佳模型
+    save_frequency: 50  # 每隔多少轮保存一次模型参数
+
+    grad_norm: 1.0  # 梯度裁剪阈值（防止梯度爆炸）
+    entropy_coef: 0.0  # 熵正则系数（鼓励探索，0 表示禁用）
+
+    truncate_grads: True  # 是否对梯度进行截断
+    e_clip: 0.2  # PPO 的剪辑范围 ε（控制更新幅度）
+
+    horizon_length: 16  # rollout 的长度（即每次收集多少步数据）
+    minibatch_size: 8192  # 每次训练用的样本量
+    mini_epochs: 8  # 每轮训练的 epoch 次数
+
+    critic_coef: 4  # 价值函数损失的权重（越大越强调价值网络）
+    clip_value: True  # 是否对 value 损失也进行剪辑
+    seq_len: 4  # LSTM 相关参数（如果用 RNN，这里是序列长度）
+    bounds_loss_coef: 0.0001  # 对动作越界的惩罚系数（用于收敛稳定）

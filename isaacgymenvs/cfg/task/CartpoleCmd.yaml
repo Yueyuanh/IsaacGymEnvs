@@ -1,49 +1,201 @@
-# used to create the object
+# 创建任务对象的名称
 name: CartpoleCmd
 
+# 物理引擎的选择，继承自上层配置
 physics_engine: ${..physics_engine}
 
-# if given, will override the device setting in gym. 
+# 环境参数配置
 env:
+  # 并行环境数量，默认512个环境（可调节以控制训练效率与显存占用）
   numEnvs: ${resolve_default:512,${...num_envs}}
-  envSpacing: 5.0  #每个并行环境的间距
-  resetDist: 3.0   #重置时初始距离
-  maxEffort: 400.0 #最大的力
-  randomCommandPosRanges: 3.0 #设定位置范围
 
-  clipObservations: 5.0 #观测值裁减范围
-  clipActions: 1.0      #动作值裁减范围
+  # 每个环境之间的间距（可避免物体之间相互干扰）
+  envSpacing: 5.0
 
+  # 重置时小车与杆子的最大初始位置偏移范围
+  resetDist: 3.0
+
+  # 最大施加的力（用于限制物理模拟中的动作大小）
+  maxEffort: 400.0
+
+  # 随机命令目标位置范围（可用于增强泛化能力）
+  randomCommandPosRanges: 3.0
+
+  # 观测值裁剪范围（防止观测值过大）
+  clipObservations: 5.0
+
+  # 动作值裁剪范围（保持动作输出在合理范围内）
+  clipActions: 1.0
+
+  # 资源相关设置
   asset:
+    # 资产根目录（通常是urdf文件等模型文件所在路径）
     assetRoot: "../../assets"
+
+    # 指定的URDF模型文件（可以更换为其他机器人模型）
     assetFileName: "urdf/cartpole_cmd.urdf"
+    # 可替代模型示例：
     # assetFileName: "Yummy_Robot/urdf/Yummy_Robot.urdf"
 
-  # set to True if you use camera sensors in the environment
+  # 是否启用相机传感器（默认禁用以提升性能）
   enableCameraSensors: False
+  # 如果需要启用，可以改为 True，并在代码中增加图像采集逻辑
 
+# 仿真器参数配置
 sim:
-  dt: 0.0166 # 1/60 s
+  # 仿真步长，1/60 秒，对应 60Hz 频率
+  dt: 0.0166
+  # 更高精度模拟可用更小步长，如：
   # dt: 0.001
+
+  # 每个外部时间步中的内部物理子步数量
   substeps: 2
+
+  # 向上轴，z轴为正（通常在三维仿真中使用）
   up_axis: "z"
+
+  # 是否启用GPU管线（视pipeline设置是否为"gpu"而定）
   use_gpu_pipeline: ${eq:${...pipeline},"gpu"}
+
+  # 重力设置，单位 m/s^2
   gravity: [0.0, 0.0, -9.81]
+
+  # 使用PhysX物理引擎的参数配置
   physx:
+    # 使用的线程数
     num_threads: ${....num_threads}
+
+    # 求解器类型，通常为0或1（0: PGS，1: TGS）
     solver_type: ${....solver_type}
-    use_gpu: ${contains:"cuda",${....sim_device}} # set to False to run on CPU
+
+    # 是否使用GPU加速（判断sim_device中是否包含cuda）
+    use_gpu: ${contains:"cuda",${....sim_device}}
+
+    # 位置迭代次数
     num_position_iterations: 4
+
+    # 速度迭代次数（一般为0或较小的值）
     num_velocity_iterations: 0
+
+    # 接触偏移量（影响碰撞检测的精度）
     contact_offset: 0.02
+
+    # 静止接触偏移
     rest_offset: 0.001
+
+    # 弹跳阈值速度（低于该值不会反弹）
     bounce_threshold_velocity: 0.2
+
+    # 最大穿透速度（防止刚体重叠）
     max_depenetration_velocity: 100.0
+
+    # 缓冲区大小倍数（可增加以防止内存溢出）
     default_buffer_size_multiplier: 2.0
-    max_gpu_contact_pairs: 1048576 # 1024*1024
+
+    # GPU接触对数量上限（非常大的值用于支持大规模环境）
+    max_gpu_contact_pairs: 1048576 # = 1024*1024
+
+    # 子场景数量（用于分布式仿真）
     num_subscenes: ${....num_subscenes}
-    contact_collection: 0 # 0: CC_NEVER (don't collect contact info), 1: CC_LAST_SUBSTEP (collect only contacts on last substep), 2: CC_ALL_SUBSTEPS (broken - do not use!)
+
+    # 接触信息采集模式
+    # 0: 不收集，1: 仅最后一步收集，2: 所有子步收集（不推荐）
+    contact_collection: 0
+
+# 任务相关设置
+# task:
+#   # 是否启用随机化（推荐开启，增强泛化能力）
+#   randomize: True
+#   play: False
 
 task:
-  randomize: False
-  play: False
+  # 是否启用随机化功能，设置为 False 表示暂时禁用（需要时可打开）
+  randomize: True
+
+  # 随机化参数设置
+  randomization_params:
+    # 随机化的频率：每600个环境步进行一次新的随机化
+    frequency: 500
+
+    # 对观测值进行随机扰动
+    observations:
+      range: [0, .002]           # 添加高斯噪声的幅度范围
+      operation: "additive"      # 操作方式：加性噪声
+      distribution: "gaussian"   # 分布类型为高斯分布
+
+    # 对动作值添加扰动
+    actions:
+      range: [0., .02]           # 添加的动作噪声范围
+      operation: "additive"      # 加性噪声
+      distribution: "gaussian"   # 高斯分布
+
+    # 对仿真参数进行扰动
+    sim_params: 
+      gravity:
+        range: [0, 0.4]          # 重力扰动范围（单位为 m/s²）
+        operation: "additive"    # 加性扰动
+        distribution: "gaussian" # 使用高斯分布
+        schedule: "linear"       # 扰动强度线性递增
+        schedule_steps: 3000     # 在前3000步逐渐达到最大扰动值
+
+    # 对机器人或环境中 actor 的参数进行随机化
+    actor_params:
+      anymal:                    # 这是 actor 的名字，可替换为你环境中的实际名称（如 cartpole）
+        color: True              # 是否对颜色进行随机化（增加视觉鲁棒性）
+
+        # 刚体属性（如质量）的扰动
+        rigid_body_properties:
+          mass: 
+            range: [0.5, 1.5]            # 质量缩放范围（50% 到 150%）
+            operation: "scaling"         # 缩放扰动方式
+            distribution: "uniform"      # 均匀分布采样
+            setup_only: True             # 仅在仿真开始前设置一次
+            schedule: "linear"           # 线性调度
+            schedule_steps: 3000         # 在3000步内逐渐加大扰动
+
+        # 碰撞体属性扰动（如摩擦系数和恢复系数）
+        rigid_shape_properties:
+          friction:
+            num_buckets: 500             # 使用500个 bucket 来均匀采样
+            range: [0.7, 1.3]            # 摩擦系数缩放范围
+            operation: "scaling"         # 缩放扰动
+            distribution: "uniform"      # 均匀分布
+            schedule: "linear"
+            schedule_steps: 3000
+
+          restitution:
+            range: [0., 0.7]             # 恢复系数缩放范围
+            operation: "scaling"
+            distribution: "uniform"
+            schedule: "linear"
+            schedule_steps: 3000
+
+        # 关节参数扰动
+        dof_properties:
+          damping: 
+            range: [0.5, 1.5]            # 阻尼系数缩放范围
+            operation: "scaling"
+            distribution: "uniform"
+            schedule: "linear"
+            schedule_steps: 3000
+
+          stiffness: 
+            range: [0.5, 1.5]            # 刚度系数缩放范围
+            operation: "scaling"
+            distribution: "uniform"
+            schedule: "linear"
+            schedule_steps: 3000
+
+          lower:
+            range: [0, 0.01]             # 下限加性扰动范围
+            operation: "additive"
+            distribution: "gaussian"
+            schedule: "linear"
+            schedule_steps: 3000
+
+          upper:
+            range: [0, 0.01]             # 上限加性扰动范围
+            operation: "additive"
+            distribution: "gaussian"
+            schedule: "linear"
+            schedule_steps: 3000

@@ -45,7 +45,7 @@ class Yummy(VecTask):
         self.max_push_effort = self.cfg["env"]["maxEffort"]
         self.max_episode_length = 5000
 
-        self.cfg["env"]["numObservations"] = 5
+        self.cfg["env"]["numObservations"] = 9
         self.cfg["env"]["numActions"] = 1
 
         # 初始化父类对象
@@ -133,7 +133,12 @@ class Yummy(VecTask):
 
             dof_props = self.gym.get_actor_dof_properties(env_ptr, Yummy_handle)
             dof_props['driveMode'][0] = gymapi.DOF_MODE_EFFORT #扭矩模式
-            dof_props['driveMode'][1] = gymapi.DOF_MODE_NONE
+            dof_props['driveMode'][1] = gymapi.DOF_MODE_EFFORT
+            dof_props['driveMode'][2] = gymapi.DOF_MODE_EFFORT
+            dof_props['driveMode'][3] = gymapi.DOF_MODE_EFFORT
+            dof_props['driveMode'][4] = gymapi.DOF_MODE_EFFORT
+            dof_props['driveMode'][5] = gymapi.DOF_MODE_EFFORT
+
             dof_props['stiffness'][:] = 0.0
             dof_props['damping'][:] = 0.0
             self.gym.set_actor_dof_properties(env_ptr, Yummy_handle, dof_props)
@@ -149,21 +154,32 @@ class Yummy(VecTask):
 
         self.gym.refresh_dof_state_tensor(self.sim) #从仿真器获取数据
 
-        self.obs_buf[env_ids, 0] = self.dof_pos[env_ids, 0].squeeze() #小车位置
-        self.obs_buf[env_ids, 1] = self.dof_vel[env_ids, 0].squeeze() #小车速度
-        self.obs_buf[env_ids, 2] = self.dof_pos[env_ids, 1].squeeze() #倒立摆角度
-        self.obs_buf[env_ids, 3] = self.dof_vel[env_ids, 1].squeeze() #倒立摆角速度
-        self.obs_buf[env_ids, 4] = self.commands[env_ids].squeeze()   #新增观测
+        self.obs_buf[env_ids, 0] = self.dof_pos[env_ids, 0].squeeze() 
+        self.obs_buf[env_ids, 1] = self.dof_vel[env_ids, 0].squeeze() 
+        self.obs_buf[env_ids, 2] = self.dof_pos[env_ids, 1].squeeze() 
+        self.obs_buf[env_ids, 3] = self.dof_vel[env_ids, 1].squeeze() 
+        self.obs_buf[env_ids, 4] = self.dof_pos[env_ids, 2].squeeze() 
+        self.obs_buf[env_ids, 5] = self.dof_vel[env_ids, 2].squeeze() 
+        self.obs_buf[env_ids, 6] = self.dof_pos[env_ids, 3].squeeze() 
+        self.obs_buf[env_ids, 7] = self.dof_vel[env_ids, 3].squeeze() 
+        self.obs_buf[env_ids, 8] = self.commands[env_ids].squeeze() 
 
         return self.obs_buf
 
     def compute_reward(self): #计算奖励
         # retrieve environment observations from buffer
+        
+        cart_pos   = self.obs_buf[:, 0]
+        cart_vel   = self.obs_buf[:, 1]
         pole_angle = self.obs_buf[:, 2]
         pole_vel   = self.obs_buf[:, 3]
-        cart_vel   = self.obs_buf[:, 1]
-        cart_pos   = self.obs_buf[:, 0]
-        command    = self.obs_buf[:, 4]
+        J3_pos     = self.obs_buf[:, 4]
+        J3_vel     = self.obs_buf[:, 5]
+        J4_angle   = self.obs_buf[:, 6]
+        J4_vel     = self.obs_buf[:, 7]
+        command    = self.obs_buf[:, 8]
+
+        # print(J3_pos,J4_angle)
 
         self.rew_buf[:], self.reset_buf[:] = compute_cartpole_reward(
             command,

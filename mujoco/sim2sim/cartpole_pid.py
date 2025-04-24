@@ -60,18 +60,20 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
         cart_vel_lpf = Cart_Vel_LPF.filter(cart_vel)
 
-        if t>=1:
-            pos_set = 1
-        else:
-            pos_set = 0
-        # pos_set=0
+        # if t>=1:
+        #     pos_set = 1
+        # else:
+        #     pos_set = 0
+        pos_set=0
         speed_set = Position_PID.compute(pos_set,-cart_pos) 
         
         angle_set = Speed_PID.compute(speed_set,-cart_vel_lpf)
         # print(angle_set,"  ",cart_vel_lpf)
         # angle_set = 0.1
         force = Angle_PID.compute(angle_set, pole_angle)
-        data.ctrl[0] = force
+
+        if int(t/dt) % 1 == 0:
+            data.ctrl[0] = force
         # print(angle_set,"  ",cart_vel)
 
         # 记录数据

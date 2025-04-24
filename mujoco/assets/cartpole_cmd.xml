@@ -45,7 +45,7 @@
 
       <!-- 小车尺寸：0.2×0.25×0.2（MuJoCo用半尺寸表示） -->
       <geom name="cart_geom" type="box" size="0.1 0.125 0.1" material="cart_mat"/>
-      <inertial pos="0 0 0" mass="1" diaginertia="0.002 0.002 0.002"/>
+      <inertial pos="0 0 0.05" mass="1" diaginertia="0.002 0.002 0.002"/>
       
       <!-- 杆子（作为小车的子物体，固定在小车上） -->
       <body name="pole" pos="-0.15 0 0">  <!-- 杆子下端固定在小车顶部 -->
